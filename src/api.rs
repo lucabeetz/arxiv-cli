@@ -8,13 +8,14 @@ use reqwest;
 use crate::model::{Feed, Paper};
 
 #[derive(Default)]
-pub struct ArxivQuery {
+pub struct ArxivQuery<'a> {
     pub base_url: String,
-    pub search_query: Option<String>,
-    pub id_list: Option<String>,
+    pub search_query: Option<&'a str>,
+    pub id_list: Option<&'a str>,
+    pub sort_by: Option<&'a str>,
 }
 
-impl ArxivQuery {
+impl<'a> ArxivQuery<'a> {
     pub fn new(base_url: String) -> Self {
         ArxivQuery {
             base_url,
@@ -22,15 +23,20 @@ impl ArxivQuery {
         }
     }
 
-    pub fn set_search_query(&mut self, search_query: String) {
+    pub fn set_search_query(&mut self, search_query: &'a str) {
         self.search_query = Some(search_query);
     }
 
-    pub fn set_id_list(&mut self, id_list: String) {
+    pub fn set_id_list(&mut self, id_list: &'a str) {
         self.id_list = Some(id_list);
     }
 
+    pub fn set_sort_by(&mut self, sort_by: &'a str) {
+        self.sort_by = Some(sort_by);
+    }
+
     pub async fn run(&self) -> Result<Feed> {
+        println!("{}", self.to_url());
         let body = reqwest::get(self.to_url()).await?.text().await?;
         let feed = quick_xml::de::from_str(&body)?;
 
@@ -41,11 +47,15 @@ impl ArxivQuery {
         let mut queries = Vec::new();
 
         if let Some(search_query) = &self.search_query {
-            queries.push(format!("search_query={}", search_query));
+            queries.push(format!("search_query=\"{}\"", search_query));
         }
 
         if let Some(id_list) = &self.id_list {
             queries.push(format!("id_list={}", id_list));
+        }
+
+        if let Some(sort_by) = &self.sort_by {
+            queries.push(format!("sortBy={}", sort_by));
         }
 
         format!("{}{}", self.base_url, queries.join("&"))
