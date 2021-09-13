@@ -16,6 +16,7 @@ enum ArxivCli {
         /// Search query
         search_query: String,
 
+        /// Sort order of returned papers
         #[structopt(default_value = "submittedDate", long)]
         sort_by: String,
     },
@@ -28,7 +29,7 @@ async fn main() -> Result<()> {
     let args = ArxivCli::from_args();
 
     match args {
-        ArxivCli::Download { arxiv_id } => {}
+        ArxivCli::Download { arxiv_id } => commands::download_command(arxiv_id).await?,
         ArxivCli::Search {
             search_query,
             sort_by,

@@ -2,8 +2,6 @@ use std::io::Write;
 use std::{fs, path::Path};
 
 use color_eyre::eyre::Result;
-use quick_xml;
-use reqwest;
 
 use crate::model::{Feed, Paper};
 
@@ -36,7 +34,6 @@ impl<'a> ArxivQuery<'a> {
     }
 
     pub async fn run(&self) -> Result<Feed> {
-        println!("{}", self.to_url());
         let body = reqwest::get(self.to_url()).await?.text().await?;
         let feed = quick_xml::de::from_str(&body)?;
 
