@@ -13,6 +13,8 @@ pub struct Paper {
     pub id: String,
     pub title: String,
     pub summary: String,
+    pub updated: String,
+    pub published: String,
 
     #[serde(rename = "author", default)]
     pub authors: Vec<Author>,
