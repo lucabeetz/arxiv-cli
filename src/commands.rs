@@ -17,6 +17,11 @@ pub async fn search_command(search_query: String, sort_by: String) -> Result<()>
 
     let mut feed = query.run().await?;
 
+    if feed.papers.is_empty() {
+        println!("No papers found matching query \"{}\"", search_query);
+        return Ok(());
+    }
+
     // Display papers matching query
     println!(
         "Displaying {} papers matching the query \"{}\"\n",
@@ -60,8 +65,9 @@ pub async fn download_command(arxiv_id: String) -> Result<()> {
 
     let feed = query.run().await?;
 
-    if let Some(paper) = feed.papers.get(0) {
-        select_tag_and_download(paper).await?;
+    match feed.papers.get(0) {
+        Some(paper) => select_tag_and_download(paper).await?,
+        _ => eprintln!("No paper found with id: {}", arxiv_id),
     }
 
     Ok(())
@@ -85,7 +91,10 @@ async fn select_tag_and_download(paper: &Paper) -> Result<()> {
     }
 
     // Select tag
-    println!("Enter paper tag, existing tags: {:?}", available_tags);
+    println!(
+        "Enter paper tag, existing tags: {}",
+        available_tags.join(", ")
+    );
     let mut line = String::new();
     io::stdin().read_line(&mut line)?;
     let tag_dir = line.trim();
