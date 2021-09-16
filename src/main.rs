@@ -1,6 +1,7 @@
 mod api;
 mod commands;
 mod model;
+mod utils;
 
 use color_eyre::eyre::Result;
 use structopt::StructOpt;
