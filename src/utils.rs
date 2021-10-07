@@ -8,7 +8,7 @@ use std::{
 };
 
 pub async fn select_tag_and_download(paper: &Paper) -> Result<()> {
-    // Create list of existing tags
+    // Create list of existing tags by reading directory names in current directory
     let mut available_tags: Vec<String> = Vec::new();
     for entry in fs::read_dir(".")? {
         let path = entry?.path();
@@ -24,7 +24,7 @@ pub async fn select_tag_and_download(paper: &Paper) -> Result<()> {
         }
     }
 
-    // Select tag
+    // Display existing tags and ask for desired tag
     println!(
         "Enter paper tag, existing tags: {}",
         available_tags.join(", ")
@@ -33,9 +33,11 @@ pub async fn select_tag_and_download(paper: &Paper) -> Result<()> {
     io::stdin().read_line(&mut line)?;
     let tag_dir = line.trim();
 
+    // Download paper
     fs::create_dir_all(tag_dir)?;
     paper.download_pdf(tag_dir).await?;
 
+    // Append paper info to markdown file
     let mut md_file = OpenOptions::new()
         .append(true)
         .create(true)

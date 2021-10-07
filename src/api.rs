@@ -2,6 +2,7 @@ use std::io::Write;
 use std::{fs, path::Path};
 
 use color_eyre::eyre::Result;
+use reqwest::header;
 
 use crate::model::{Feed, Paper};
 
@@ -62,8 +63,22 @@ impl<'a> ArxivQuery<'a> {
 impl Paper {
     pub async fn download_pdf(&self, out_dir: &str) -> Result<()> {
         let arxiv_id = String::from(*self.id.split('/').collect::<Vec<_>>().last().unwrap());
-        let pdf_url = format!("http://de.arxiv.org/pdf/{}.pdf", arxiv_id);
-        let body = reqwest::get(pdf_url).await?.bytes().await?;
+        let pdf_url = format!("http://export.arxiv.org/pdf/{}.pdf", arxiv_id);
+        println!("{}", &pdf_url);
+
+        let mut headers = header::HeaderMap::new();
+        headers.insert(
+            header::USER_AGENT,
+            header::HeaderValue::from_static(
+                "Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion",
+            ),
+        );
+
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()?;
+        let res = client.get(pdf_url).send().await?;
+        let body = res.bytes().await?;
 
         // Create output dir and save paper to PDF
         fs::create_dir_all(out_dir)?;
